@@ -227,8 +227,8 @@ class Blockchain(object):
                                      json=post_data)
 
             if response.status_code != 200:
-                # Error handling
-                pass
+                print(f'Error broadcasting new block to node {node}')
+                continue
 
 
 # Instantiate our Node
@@ -240,6 +240,8 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
+# Keep a count of mined coins
+miner_ledger = {}
 
 @app.route('/mine', methods=['POST'])
 def mine():
@@ -248,16 +250,24 @@ def mine():
     last_proof = last_block['proof']
 
     values = request.get_json()
+    submitted_client_id = values['id']
     submitted_proof = values.get('proof')
 
     if blockchain.valid_proof(last_proof, submitted_proof):
-        # We must receive a reward for finding the proof.
-        # The sender is "0" to signify that this node has mine a new coin
+        # Client must receive a reward for finding the proof.
         blockchain.new_transaction(
-            sender="0",
+            sender=submitted_client_id,
             recipient=node_identifier,
             amount=1,
         )
+
+        # Add ledger count
+        if not submitted_client_id in miner_ledger:
+            miner_ledger[submitted_client_id] = 0
+        miner_ledger[submitted_client_id] += 1
+
+        # Print count
+        print(f'Miner {submitted_client_id} has successfully submitted a proof! Miner\'s proof count: {miner_ledger[submitted_client_id]}')
 
         # Forge the new Block by adding it to the chain
         previous_hash = blockchain.hash(last_block)
@@ -293,6 +303,8 @@ def new_block():
         return 'Missing Values', 400
 
     # TODO: Verify that the sender is one of our peers
+    # if not values['node'] in blockchain.nodes:
+    #     return 'Invalid node'
 
     # Check that the new block index is 1 higher than our last block
     new_block = values.get('block')
