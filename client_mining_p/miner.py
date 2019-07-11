@@ -42,14 +42,13 @@ if __name__ == '__main__':
     while True:
         # Get the last proof from the server
         last_proof = requests.get('http://localhost:5000/last_proof').json()['last_proof']
-        # print('last_proof', last_proof)
+        print('last_proof', last_proof)
 
         # look for the next proof
         new_proof = mine_proof(last_proof)
 
         #POST new_proof to the server
         post_response = requests.post('http://localhost:5000/mine', json = {'proof': new_proof})
-        print(post_response)
 
         print('post_response:', post_response.status_code)
         print(post_response.json())

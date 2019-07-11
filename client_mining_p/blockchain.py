@@ -135,10 +135,10 @@ def last_proof():
     
     return jsonify(response), 200
 
+count = 0
 
 @app.route('/mine', methods=['POST'])
 def mine():
-    count = 0
     # We run the proof of work algorithm to get the next proof...
     last_block = blockchain.last_block
     last_proof = last_block['proof']
@@ -168,7 +168,7 @@ def mine():
         'previous_hash': new_block['previous_hash'],
         'transactions': new_block['transactions'],
     }
-    
+
     count += 1
     print('Recipient Coin Count: ', count)
 
