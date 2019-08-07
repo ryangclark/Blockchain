@@ -1,7 +1,7 @@
 import hashlib
 import requests
-
 import sys
+from uuid import uuid4
 
 
 def proof_of_work(last_proof):
@@ -12,7 +12,7 @@ def proof_of_work(last_proof):
     - p is the previous proof, and p' is the new proof
     """
 
-    print("Searching for next proof")
+    print(f'Last Proof: {last_proof}. Searching for next proof...')
     proof = 0
     while valid_proof(last_proof, proof) is False:
         proof += 1
@@ -38,6 +38,21 @@ if __name__ == '__main__':
     else:
         node = "http://localhost:5000"
 
+
+    # check for file with ID, and load it if found
+    file_name = 'my_id.txt'
+
+    try:
+        with open(file_name, 'r') as f:
+            client_id = f.read()
+    except FileNotFoundError as e:
+        print('FileNotFoundError encountered, creating new Client ID')
+        with open(file_name, 'w+') as f:
+            client_id = str(uuid4()).replace('-', '')
+            f.write(client_id)
+        
+    print(f'Client ID: {client_id}')
+    
     coins_mined = 0
     # Run forever until interrupted
     while True:
@@ -46,7 +61,7 @@ if __name__ == '__main__':
         data = r.json()
         new_proof = proof_of_work(data.get('proof'))
 
-        post_data = {"proof": new_proof}
+        post_data = {"id": client_id, "proof": new_proof}
 
         r = requests.post(url=node + "/mine", json=post_data)
         data = r.json()
